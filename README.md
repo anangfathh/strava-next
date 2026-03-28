@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Strava Dashboard (Next.js, No DB)
 
-## Getting Started
+Custom Strava dashboard that reads directly from Strava API.
+No PostgreSQL and no Grafana required.
 
-First, run the development server:
+## What This App Implements
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- OAuth connect flow in Next.js (`/api/auth/strava/login`)
+- Secure httpOnly session cookie for access/refresh token
+- Server-side proxy to Strava API (`/api/strava/[...path]`)
+- Local read-rate guard based on your limits:
+	- 100 requests / 15 minutes
+	- 1000 requests / day
+- In-memory cache with TTL to reduce repeated requests
+- Lazy-loaded dashboard sections (overview/trends/recent only fetch when visible)
+
+## Setup
+
+1. Copy env:
+
+```powershell
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Fill Strava credentials in `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `STRAVA_CLIENT_ID`
+- `STRAVA_CLIENT_SECRET`
+- `STRAVA_REDIRECT_URI` (default: `http://localhost:3000/api/auth/strava/callback`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Install and run:
 
-## Learn More
+```powershell
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Open `http://localhost:3000` and click **Connect Strava**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Rate Limit Strategy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Every GET call is checked against local request budget first.
+- If budget is exhausted, app returns 429 before calling Strava.
+- Cached responses reduce duplicate traffic.
+- Trends endpoint caps pagination with `STRAVA_MAX_ACTIVITY_PAGES`.
+- Client-side SWR cache keeps data across page transitions (no manual reload needed).
+- Refresh policy is selective:
+	- auth/budget: ~90s
+	- overview: ~5m
+	- recent: ~3m
+	- trends: ~30m
 
-## Deploy on Vercel
+## API Endpoints
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Auth:
+	- `GET /api/auth/strava/login`
+	- `GET /api/auth/strava/callback`
+	- `GET /api/auth/strava/status`
+	- `POST /api/auth/strava/logout`
+- Dashboard:
+	- `GET /api/dashboard/overview`
+	- `GET /api/dashboard/trends`
+	- `GET /api/dashboard/recent`
+- Generic Strava proxy:
+	- `GET|POST|PUT|DELETE /api/strava/[...path]`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+- Session/cache/rate counters are in-memory (single runtime instance).
+- For production multi-instance, move cache and limiter state to Redis.
