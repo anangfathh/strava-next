@@ -20,10 +20,14 @@ function mustGetEnv(name: string, fallback = ""): string {
 }
 
 export function getStravaConfig() {
+  const isVercel = process.env.VERCEL === "1";
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  const defaultDomain = isVercel && host ? `https://${host}` : "http://localhost:3000";
+
   return {
     clientId: mustGetEnv("STRAVA_CLIENT_ID"),
     clientSecret: mustGetEnv("STRAVA_CLIENT_SECRET"),
-    redirectUri: mustGetEnv("STRAVA_REDIRECT_URI", "http://localhost:3000/api/auth/strava/callback"),
+    redirectUri: mustGetEnv("STRAVA_REDIRECT_URI", `${defaultDomain}/api/auth/strava/callback`),
     scopes: process.env.STRAVA_SCOPES ?? "read,activity:read_all,profile:read_all",
   };
 }
