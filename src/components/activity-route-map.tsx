@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import L, { type LatLngTuple, type Map as LeafletMap, type Polyline as LeafletPolyline, type TileLayer as LeafletTileLayer } from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 type LatLngPoint = {
   lat: number;
@@ -65,7 +66,7 @@ export function ActivityRouteMap({ points, mapKey }: ActivityRouteMapProps) {
 
     if (!polylineRef.current) {
       polylineRef.current = L.polyline(latLngs, {
-        color: "#0b8f74",
+        color: "#fc4c02", // Using Strava orange instead of green
         weight: 4,
       }).addTo(map);
     } else {
@@ -73,26 +74,20 @@ export function ActivityRouteMap({ points, mapKey }: ActivityRouteMapProps) {
     }
 
     map.fitBounds(polylineRef.current.getBounds(), { padding: [24, 24] });
-    map.invalidateSize();
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100); // Give layout time to shift
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapKey, points.length]);
 
-  if (points.length < 2) {
-    return (
-      <div className="flex h-80 items-center justify-center text-sm text-[var(--color-muted)]">
-        Route polyline is not available for this activity.
-      </div>
-    );
-  }
-
   if (typeof window === "undefined") {
-    return (
-      <div className="flex h-80 items-center justify-center text-sm text-[var(--color-muted)]">
-        Loading interactive map...
-      </div>
-    );
+    return <div className="flex h-80 items-center justify-center text-sm text-[var(--color-muted)] bg-gray-50 border border-gray-100 rounded-md">Loading interactive map...</div>;
   }
 
-
-  return <div ref={containerRef} className="h-80 w-full" />;
+  return (
+    <div className="relative h-80 w-full overflow-hidden rounded-md z-0">
+      <div ref={containerRef} className="h-full w-full z-0" />
+      {points.length < 2 && <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-50 text-sm text-[var(--color-muted)]">Route polyline is not available for this activity.</div>}
+    </div>
+  );
 }

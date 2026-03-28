@@ -43,9 +43,7 @@ type TrendsResponse = {
 
 function formatDate(value: string): string {
   const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function LiveDashboard() {
@@ -62,35 +60,22 @@ export function LiveDashboard() {
 
   const linked = Boolean(status?.linked);
 
-  const { data: overview, error: overviewError } = useSWR<OverviewResponse>(
-    linked ? "/api/dashboard/overview" : null,
-    { refreshInterval: 300_000 },
-  );
+  const { data: overview, error: overviewError } = useSWR<OverviewResponse>(linked ? "/api/dashboard/overview" : null, { refreshInterval: 300_000 });
 
-  const { data: trends, error: trendsError } = useSWR<TrendsResponse>(
-    linked ? "/api/dashboard/trends" : null,
-    { refreshInterval: 1_800_000 },
-  );
+  const { data: trends, error: trendsError } = useSWR<TrendsResponse>(linked ? "/api/dashboard/trends" : null, { refreshInterval: 1_800_000 });
 
-  const { data: recent, error: recentError, isLoading: recentLoading } = useSWR<RecentActivity[]>(
-    linked ? `/api/dashboard/recent?page=${page}&limit=${limit}` : null,
-    { keepPreviousData: true, refreshInterval: 180_000 },
-  );
+  const { data: recent, error: recentError, isLoading: recentLoading } = useSWR<RecentActivity[]>(linked ? `/api/dashboard/recent?page=${page}&limit=${limit}` : null, { keepPreviousData: true, refreshInterval: 180_000 });
 
   const activeError = statusError ?? overviewError ?? trendsError ?? recentError;
 
-  const budgetText = status?.budget
-    ? `${status.budget.remaining15m}/${status.budget.limit15m} left (15m), ${status.budget.remainingDaily}/${status.budget.limitDaily} left (daily)`
-    : "-";
+  const budgetText = status?.budget ? `${status.budget.remaining15m}/${status.budget.limit15m} left (15m), ${status.budget.remainingDaily}/${status.budget.limitDaily} left (daily)` : "-";
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-8 sm:px-8">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4">
         <div>
           <p className="text-xs uppercase tracking-widest text-[var(--color-brand)] font-semibold">Live API Mode</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[var(--color-ink)] sm:text-4xl">
-            Activity Dashboard
-          </h1>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[var(--color-ink)] sm:text-4xl">Activity Dashboard</h1>
           <p className="mt-2 text-sm text-[var(--color-muted)] max-w-xl">
             Direct Strava integration with smart caching. <br className="hidden sm:block" /> {budgetText}
           </p>
@@ -111,27 +96,19 @@ export function LiveDashboard() {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="card p-5">
           <p className="text-xs uppercase tracking-wide text-[var(--color-muted)]">Distance This Week</p>
-          <p className="stat-value mt-2 text-3xl font-semibold text-[var(--color-ink)]">
-            {overview ? `${overview.weekDistanceKm.toFixed(1)} km` : linked ? "Loading..." : "-"}
-          </p>
+          <p className="stat-value mt-2 text-3xl font-semibold text-[var(--color-ink)]">{overview ? `${overview.weekDistanceKm.toFixed(1)} km` : linked ? "Loading..." : "-"}</p>
         </article>
         <article className="card p-5">
           <p className="text-xs uppercase tracking-wide text-[var(--color-muted)]">Activities This Week</p>
-          <p className="stat-value mt-2 text-3xl font-semibold text-[var(--color-ink)]">
-            {overview ? overview.weekActivities : linked ? "Loading..." : "-"}
-          </p>
+          <p className="stat-value mt-2 text-3xl font-semibold text-[var(--color-ink)]">{overview ? overview.weekActivities : linked ? "Loading..." : "-"}</p>
         </article>
         <article className="card p-5">
           <p className="text-xs uppercase tracking-wide text-[var(--color-muted)]">Average HR (30 Days)</p>
-          <p className="stat-value mt-2 text-3xl font-semibold text-[var(--color-ink)]">
-            {overview ? `${overview.avgHr30d.toFixed(0)} bpm` : linked ? "Loading..." : "-"}
-          </p>
+          <p className="stat-value mt-2 text-3xl font-semibold text-[var(--color-ink)]">{overview ? `${overview.avgHr30d.toFixed(0)} bpm` : linked ? "Loading..." : "-"}</p>
         </article>
         <article className="card p-5">
           <p className="text-xs uppercase tracking-wide text-[var(--color-muted)]">Run Pace (30 Days)</p>
-          <p className="stat-value mt-2 text-3xl font-semibold text-[var(--color-ink)]">
-            {overview ? `${overview.avgRunPace30d.toFixed(2)} min/km` : linked ? "Loading..." : "-"}
-          </p>
+          <p className="stat-value mt-2 text-3xl font-semibold text-[var(--color-ink)]">{overview ? `${overview.avgRunPace30d.toFixed(2)} min/km` : linked ? "Loading..." : "-"}</p>
         </article>
       </section>
 
@@ -168,36 +145,42 @@ export function LiveDashboard() {
                 <th className="px-5 py-3 font-medium">Distance</th>
                 <th className="px-5 py-3 font-medium">Time</th>
                 <th className="px-5 py-3 font-medium">Avg HR</th>
+                <th className="px-5 py-3 font-medium text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-line)] relative">
               {recentLoading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-sm text-[var(--color-muted)] relative">
+                  <td colSpan={7} className="px-5 py-8 text-center text-sm text-[var(--color-muted)] relative">
                     Loading activities...
                   </td>
                 </tr>
               )}
-              {!recentLoading && (recent ?? []).map((activity) => (
-                <tr key={activity.id} className="hover:bg-[#fdfdfd] transition-colors">
-                  <td className="px-5 py-4 text-[var(--color-muted)]">{formatDate(activity.startDate)}</td>
-                  <td className="px-5 py-4 text-[var(--color-ink)] font-medium">
-                    <Link className="hover:text-[var(--color-brand)] transition-colors" href={`/activity/${activity.id}`}>
-                      {activity.name}
-                    </Link>
-                  </td>
-                  <td className="px-5 py-4 text-[var(--color-muted)]">
-                    <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                      {activity.type}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-[var(--color-ink)] stat-value">{activity.km.toFixed(2)} km</td>
-                  <td className="px-5 py-4 text-[var(--color-ink)] stat-value">{activity.movingMinutes.toFixed(1)} min</td>
-                  <td className="px-5 py-4 text-[var(--color-muted)] stat-value">
-                    {activity.avgHr == null ? "-" : `${activity.avgHr.toFixed(0)}`}
-                  </td>
-                </tr>
-              ))}
+              {!recentLoading &&
+                (recent ?? []).map((activity) => (
+                  <tr key={activity.id} className="hover:bg-[#fdfdfd] transition-colors">
+                    <td className="px-5 py-4 text-[var(--color-muted)]">{formatDate(activity.startDate)}</td>
+                    <td className="px-5 py-4 text-[var(--color-ink)] font-medium">
+                      <Link className="hover:text-[var(--color-brand)] transition-colors" href={`/activity/${activity.id}`}>
+                        {activity.name}
+                      </Link>
+                    </td>
+                    <td className="px-5 py-4 text-[var(--color-muted)]">
+                      <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">{activity.type}</span>
+                    </td>
+                    <td className="px-5 py-4 text-[var(--color-ink)] stat-value">{activity.km.toFixed(2)} km</td>
+                    <td className="px-5 py-4 text-[var(--color-ink)] stat-value">{activity.movingMinutes.toFixed(1)} min</td>
+                    <td className="px-5 py-4 text-[var(--color-muted)] stat-value">{activity.avgHr == null ? "-" : `${activity.avgHr.toFixed(0)}`}</td>
+                    <td className="px-5 py-4 text-right">
+                      <Link
+                        href={`/activity/${activity.id}`}
+                        className="inline-flex items-center justify-center rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors"
+                      >
+                        Detail
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
               {!recentLoading && linked && recent && recent.length === 0 ? (
                 <tr>
                   <td className="px-5 py-8 text-center text-[var(--color-muted)]" colSpan={6}>
@@ -208,13 +191,13 @@ export function LiveDashboard() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination Controls */}
         <div className="flex items-center justify-between border-t border-[var(--color-line)] bg-[#f9fafb] px-5 py-3">
           <button
             type="button"
             className="rounded-md border border-[var(--color-line)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            onClick={() => setPage(page => Math.max(1, page - 1))}
+            onClick={() => setPage((page) => Math.max(1, page - 1))}
             disabled={page === 1 || recentLoading}
           >
             Previous
@@ -225,7 +208,7 @@ export function LiveDashboard() {
           <button
             type="button"
             className="rounded-md border border-[var(--color-line)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            onClick={() => setPage(page => page + 1)}
+            onClick={() => setPage((page) => page + 1)}
             disabled={(recent?.length ?? 0) < limit || recentLoading}
           >
             Next
