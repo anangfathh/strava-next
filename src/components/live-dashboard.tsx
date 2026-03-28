@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
@@ -74,8 +75,9 @@ export function LiveDashboard() {
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-8 sm:px-8">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4">
         <div>
-          <p className="text-xs uppercase tracking-widest text-[var(--color-brand)] font-semibold">Live API Mode</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[var(--color-ink)] sm:text-4xl">Activity Dashboard</h1>
+          <div className="flex items-center gap-4 mb-2">
+            <Image src="/logo.png" alt="Anangfath Performance Dashboard" width={160} height={160} className="drop-shadow-sm h-auto w-auto max-h-[100px] object-contain" priority />
+          </div>
           <p className="mt-2 text-sm text-[var(--color-muted)] max-w-xl">
             Direct Strava integration with smart caching. <br className="hidden sm:block" /> {budgetText}
           </p>
